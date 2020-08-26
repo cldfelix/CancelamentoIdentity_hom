@@ -1,0 +1,86 @@
+﻿@model CancelamentoIdentity.Models.Cancelamento
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="form-group">
+            @Html.LabelFor(p => p.VooAnterior.NumeroDoVoo, new { @class = "control-label" })
+            @Html.TextBoxFor(p => p.VooAnterior.NumeroDoVoo, new { @class = "form-control", @readonly = "readonly" })
+        </div>
+    </div>
+    @*@Html.HiddenFor(p => p.VooAnterior.NumeroDoVoo)*@
+<div class="col-md-3">
+    <div class="form-group">
+        @Html.LabelFor(p => p.VooAnterior.DataVoo, new { @class = "control-label" })
+        @Html.TextBoxFor(p => p.VooAnterior.DataVoo, new { @class = "form-control", @readonly = "readonly" })
+    </div>
+</div>
+    @*@Html.HiddenFor(p => p.VooAnterior.DataVoo)*@
+    <div class="col-md-offset-6"></div>
+</div>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="form-group">
+            @Html.LabelFor(p => p.VooAnterior.Origem, new { @class = "control-label" })
+            @Html.TextBoxFor(p => p.VooAnterior.Origem, new { @class = "form-control", @readonly = "readonly" })
+        </div>
+    </div>
+   @*@Html.HiddenFor(p => p.VooAnterior.Destino)*@
+<div class="col-md-3">
+    <div class="form-group">
+        @Html.LabelFor(p => p.VooAnterior.STA, new { @class = "control-label" })
+        @Html.TextBoxFor(p => p.VooAnterior.STA, new { @class = "form-control", @readonly = "readonly" })
+    </div>
+</div>
+    @*@Html.HiddenFor(p => p.VooAnterior.STA)*@
+<div class="col-md-5">
+    <div class="form-group">
+        @Html.LabelFor(p => p.VooAnterior.MetarOrigem, new { @class = "control-label" })
+        @Html.TextBoxFor(p => p.VooAnterior.MetarOrigem, new { @class = "form-control", @readonly = "readonly" })
+    </div>
+</div>
+    @*@Html.HiddenFor(p => p.VooAnterior.MetarOrigem)*@
+    <div class="col-md-2">
+        @*<div class="form-group">
+            <label asp-for="VooAnterior.Matricula" class="control-label"></label>
+            <input asp-for="VooAnterior.Matricula" class="form-control form-control-lg" required disabled />
+            <span asp-validation-for="VooAnterior.Matricula" class="text-danger"></span>
+        </div>*@
+    </div>
+    @Html.HiddenFor(p => p.VooAnterior.Matricula)
+
+</div>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="form-group">
+            @Html.LabelFor(p => p.VooAnterior.Destino, new { @class = "control-label" })
+            @Html.TextBoxFor(p => p.VooAnterior.Destino, new { @class = "form-control", @readonly = "readonly" })
+        </div>
+    </div>
+ 
+        @*@Html.HiddenFor(p => p.VooAnterior.Origem)*@
+<div class="col-md-3">
+    <div class="form-group">
+        @Html.LabelFor(p => p.VooAnterior.STD, new { @class = "control-label" })
+        @Html.TextBoxFor(p => p.VooAnterior.STD, new { @class = "form-control", @readonly = "readonly" })
+    </div>
+</div>
+    @*@Html.HiddenFor(p => p.VooAnterior.STD)*@
+<div class="col-md-5">
+    <div class="form-group">
+        @Html.LabelFor(p => p.VooAnterior.MetarDestino, new { @class = "control-label" })
+        @Html.TextBoxFor(p => p.VooAnterior.MetarDestino, new { @class = "form-control", @readonly = "readonly" })
+    </div>
+</div>
+    @*@Html.HiddenFor(p => p.VooAnterior.MetarDestino)*@
+
+<div class="col-md-2">
+    <div class="form-group">
+        @Html.LabelFor(p => p.VooAnterior.TipoVoo, new { @class = "control-label" })
+        @Html.TextBoxFor(p => p.VooAnterior.TipoVoo, new { @class = "form-control", @readonly = "readonly" })
+    </div>
+</div>
+    @*@Html.HiddenFor(p => p.VooAnterior.TipoVoo)*@
+
+</div>

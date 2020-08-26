@@ -1,0 +1,120 @@
+﻿@model CancelamentoIdentity.Models.Cancelamento;
+@{
+    ViewData["Title"] = "Mostrar";
+}
+
+<h2>Mostrar</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="form-group">
+            <label asp-for="VooCancelado.NumeroDoVoo" class="control-label"></label>
+            <input asp-for="VooCancelado.NumeroDoVoo" class="form-control" disabled />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label asp-for="VooCancelado.DataVoo" class="control-label"></label>
+            <input asp-for="VooCancelado.DataVoo" class="form-control" disabled />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label asp-for="Cancelado" class="control-label"></label>
+            <input asp-for="Cancelado" class="form-control" disabled />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label asp-for="AlvoDeProcesso" class="control-label"></label>
+            <input asp-for="AlvoDeProcesso" class="form-control" disabled />
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="form-group">
+            <label asp-for="TipoCancelamento.Tipo" class="control-label"></label>
+            <input asp-for="TipoCancelamento.Tipo" class="form-control" disabled />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label asp-for="TipoCancelamento.CodAdm " class="control-label"></label>
+            <input asp-for="TipoCancelamento.CodAdm" class="form-control" disabled />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label asp-for="TipoCancelamento.Abonavel " class="control-label"></label>
+            <input asp-for="TipoCancelamento.Abonavel" class="form-control" disabled />
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Voos/_VooCancelado.cshtml", Model)
+
+@if (Model?.VooAnterior != null)
+{
+    @Html.Partial("~/Views/Voos/_VooAnterior.cshtml", Model)
+
+}
+
+
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="form-group">
+            @if (Model.Anexos.Count() > 0)
+            {
+
+                <label class="control-label">Documentos Anexos</label>
+                <ul class="nav nav-pills" role="tablist">
+
+                    @foreach (var a in @Model.Anexos)
+                    {
+                        <li role="presentation" class="active"><a href="@Url.Action("GetAnexo", "Anexos", new { id = a.Id })">@a.NomeOriginal  <span class="glyphicon glyphicon-file" aria-hidden="true"></span></a></li>
+
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label asp-for="VooCancelado.QtdPassageiros" class="control-label"></label>
+            <input asp-for="VooCancelado.QtdPassageiros" class="form-control" disabled />
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="form-group">
+            <label asp-for="Observacao" class="control-label"></label>
+            <textarea asp-for="Observacao" class="form-control" rows="5" disabled></textarea>
+        </div>
+    </div>
+</div>
+
+<input type="button" value="Retornar" class="btn btn-default" onclick="location.href='@Url.Action("Index","Home")'" />
+
+
+
+<p>Criado por: <b>@Model.CriadoPor</b> em <b>@Model.DataCriacao.ToString("dd/MM/yyyy HH:mm").</b></p>
+<p>Última modificação feita por: <b>@Model.AtualizadoPor</b> em <b>@Model.DataAtualizacao.ToString("dd/MM/yyyy HH:mm")</b></p>
+
+
+
+@section Scripts {
+    <script>
+        tinymce.init({
+            selector: "textarea",
+            height: 300,
+            readonly: 1
+        });
+
+        $("#VooAnterior_NumeroDoVoo").prop("disabled", true);
+        $("#VooAnterior_DataVoo").prop("disabled", true);
+    </script>
+}

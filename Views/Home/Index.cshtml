@@ -1,0 +1,220 @@
+﻿@model List<CancelamentoIdentity.Models.Cancelamento>
+
+
+<h4>Tabela inicial de dados</h4>
+<table class="table table-sm table-striped table-bordered" id="tabelaDados">
+    <thead class="thead-light">
+        <tr>
+            <th># Id</th>
+            <th>Nº Voo</th>
+            <th>Data do Voo</th>
+            <th>Tipo</th>
+            <th>Origem</th>
+            <th>Destino</th>
+            <th>Alvo de Processo?</th>
+            <th>Qtd de anexos</th>
+            <th>Criado em:</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+        <tr id="@r.Id">
+            <td>@r.Id</td>
+            <td>@r.VooCancelado.NumeroDoVoo</td>
+            <td>@r.VooCancelado.DataVoo.ToString("dd/MM/yyyy")</td>
+            <td>@r.TipoCancelamento.Tipo</td>
+            <td>@r.VooCancelado.Origem</td>
+            <td>@r.VooCancelado.Destino</td>
+            <td>@(r.AlvoDeProcesso ? "Sim" : "Não")</td>
+            <td>@r.Anexos.Count() </td>
+            <td>@r.DataCriacao.ToString("dd/MM/yyyy")</td>
+            <td>
+                <div class="btn-group">
+                    <button class="btn btn-default">@Html.ActionLink("Mostrar", "mostrar", new { id = r.Id })</button>
+                    <button class="btn btn-default">@Html.ActionLink("Editar", "editar", new { id = r.Id })</button>
+                    <button class="btn btn-danger" onclick="app.reativarCancelamento(@r.Id, @r.VooCancelado.NumeroDoVoo )">Reativar Voo</button>
+                    @*<button class="btn btn-default">@Html.ActionLink("Mostrar", "mostrar", new { id = r.Id })</button>
+                <button class="btn btn-default">@Html.ActionLink("Deletar", "delete", new { id = r.Id })</button>
+                <button class="btn btn-danger">
+                    @Html.ActionLink("Deletar", "Delete", new { id = r.Id },
+                         new { onclick = "return confirm('Confirma a remoção do cancelamento?');" })
+                </button>*@
+
+                </div>
+            </td>
+        </tr>
+        }
+
+    </tbody>
+    @*@if (ViewBag.Cancelamentos.Count)
+        {
+            <tfoot>
+                <tr colspan="7" class="text-center">
+                    Nenhum registro encontrado!
+                </tr>
+            </tfoot>
+        }*@
+
+</table>
+
+
+<!-- Modal confirm -->
+<div class="modal" id="confirmModal" style="display: none; z-index: 1050;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body" id="confirmMessage">
+                <div class="row">
+                    <div class="col col-md-10 col-md-offset-1">
+                        <h4>Dados utilizados para o envio de email</h4>
+                        <div class="form-group">
+                            <label>Email usuário</label>
+                            <input id="EmailUsuario" class="form-control" />
+                            <span  class="emailInvalido text-danger" style="display:none">Email Inválido </span>
+                            <div class="form-group">
+                                <label class="control-label">Senha do usuário</label>
+                                <input id="SenhaUsuario" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" onclick="app.validarEmailUsuario()">Confirmar dados</button>
+                <button type="button" class="btn btn-default" onclick="app.fecharModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script type="text/javascript">
+     var app = window.app || {};
+
+app = (function () {
+  function _init() {
+    $("#tabelaDados").DataTable({
+      buttons: [
+        {
+          extend: "csv",
+          text: "Copy all data",
+          exportOptions: {
+            modifier: {
+              search: "none",
+            },
+          },
+        },
+      ],
+      language: {
+        lengthMenu: "Exibir _MENU_ Registros por página  ",
+        search: "Procurar  ",
+        paginate: { previous: "Retorna  ", next: "  Avança" },
+        zeroRecords: "Nada foi encontrado",
+        info: "Exibindo página _PAGE_ de _PAGES_",
+        infoEmpty: "Sem registros",
+        infoFiltered: "(filtrado de _MAX_ registros totais)",
+      },
+
+      processing: true, // mostrar a progress bar
+      //'serverSide': true, // processamento no servidor
+      filter: true, // habilita o filtro(search box)
+      lengthMenu: [
+        [3, 5, 10, 25, 50, -1],
+        [3, 5, 10, 25, 50, "Todos"],
+      ],
+      pageLength: -1, // define o tamanho da página
+    });
+  }
+
+  function _reativarCancelamento(id, numeroVoo) {
+    var c = confirm(`Confirmar a reativação do voo ${numeroVoo}?`);
+
+    if (c) {
+
+        if (_verificarDadosLocalStorage()) {
+        var obj = {
+          idCancelamento: id,
+          email: localStorage.getItem("email"),
+          senhaEmail: localStorage.getItem("senha"),
+        };
+
+        $.ajax({
+          type: "POST",
+          url: '@Url.Action("ReativarCancelamento", "Home")',
+          contentType: "application/json; charset=utf-8",
+          data: JSON.stringify(obj),
+          success: () => {
+              toastr.success("Voo: " + id + " reativado com sucesso!");
+              $('tr#' + id).remove();
+    
+              
+          },
+          error: (err) => {
+            console.log(err);
+            toastr.error("Dados do voo: " + id + " não encontrados!");
+          },
+        });
+      }else{
+        var modal = $("#confirmModal");
+        modal.show();
+      }
+    }
+  }
+
+  function _verificarDadosLocalStorage() {
+    var email = localStorage.getItem("email");
+    var senhaEmail = localStorage.getItem("senha");
+
+    return (
+      email != "" &&
+      email != undefined &&
+      senhaEmail != "" &&
+      senhaEmail != undefined
+    );
+    }
+
+    function _validaEmail(email) {
+        var regex = /^([\w-]+(?:\.[\w-]+)*)@@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        return regex.test(email);
+    }
+
+    function _fecharModal() {
+        var modal = $("#confirmModal");
+        modal.hide();
+    }
+
+    function _validarEmailUsuario() {
+    var email = $("#EmailUsuario").val();
+    if (_validaEmail(email)) {
+      $(".emailInvalido").show();
+      var modal = $("#confirmModal");
+      modal.hide();
+      var email = $("#EmailUsuario").val();
+      var senhaEmail = $("#SenhaUsuario").val();
+      localStorage.setItem("email", email);
+      localStorage.setItem("senha", senhaEmail);
+    } else {
+      $(".emailInvalido").show();
+    }
+  }
+
+
+  return {
+    init: _init,
+    reativarCancelamento: _reativarCancelamento,
+      validarEmailUsuario: _validarEmailUsuario,
+      fecharModal: _fecharModal
+  };
+})();
+
+$(document).ready(function () {
+  app.init();
+});
+
+    </script>
+
+}
+
+

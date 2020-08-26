@@ -1,0 +1,533 @@
+﻿@model CancelamentoIdentity.Models.Cancelamento
+
+
+<h2>Criar</h2>
+@using (Html.BeginForm("Criar", "Home", FormMethod.Post, new { autocomplete = "off" }))
+{
+    <div class="row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label asp-for="VooCancelado.NumeroDoVoo" class="control-label"></label>
+                <input asp-for="VooCancelado.NumeroDoVoo" class="form-control" onchange="app.buscarVooCancelado()" required />
+                <span asp-validation-for="VooCancelado.NumeroDoVoo" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="form-group">
+                <label asp-for="VooCancelado.DataVoo" class="control-label"></label>
+                <input asp-for="VooCancelado.DataVoo" class="form-control" onchange="app.buscarVooCancelado()" required />
+                <span asp-validation-for="VooCancelado.DataVoo" class="text-danger"></span>
+            </div>
+        </div>
+        @*<div class="col-md-2">
+            <div class="form-group">
+
+                @Html.LabelFor(model => model.Cancelado, "Voo Cancelado?")
+                <div>
+                    @Html.RadioButtonFor(model => model.Cancelado, true, "checked") @Html.Label("", "Sim")
+                    @Html.RadioButtonFor(model => model.Cancelado, false) @Html.Label("", "Não")
+                </div>
+
+            </div>
+        </div>*@
+        <div class="col-md-3">
+            <div class="form-group text-center">
+                @Html.LabelFor(model => model.AlvoDeProcesso, "Alvo de processo jurídico?")
+                <div>
+                    @Html.RadioButtonFor(model => model.AlvoDeProcesso, true) @Html.Label("", "Sim")
+                    @Html.RadioButtonFor(model => model.AlvoDeProcesso, false, new { @checked = true }) @Html.Label("", "Não")
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group bg-danger text-center">
+
+                <label asp-for="EnviarEmail" class="control-label text-capitalize"></label>
+                <input asp-for="EnviarEmail" class="form-control" />
+            </div>
+        </div>
+
+
+
+    </div>
+    <div class="row" id="tipos">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label"> Tipo do Cancelamento</label>
+                <select class="form-control" id="opTipos" onchange="app.selectTipo()" required>
+                    @foreach (var item in ViewBag.Tipos)
+                    {
+                        <option value="@item">@item</option>
+                    }
+                </select>
+                <span asp-validation-for="TipoCancelamento.CodAdm" class="text-danger"></span>
+            </div>
+        </div>
+
+
+    </div>
+
+    @if (Model?.VooAnterior != null)
+    {
+        @Html.Partial("~/Views/Voos/_VooAnterior.cshtml", Model)
+    }
+
+    <div id="vooCancelado">
+
+        @if (Model?.VooCancelado != null)
+        {
+            @Html.Partial("~/Views/Voos/_VooCancelado.cshtml", Model)
+        }
+    </div>
+    <div id="vooAnterior">
+        @if (Model?.VooAnterior != null)
+        {
+            @Html.Partial("~/Views/Voos/_VooAnterior.cshtml", Model)
+
+        }
+
+
+    </div>
+
+
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                <label class="control-label">Anexos do Cancelamento</label>
+                <small>Tipos permitidos: "doc, pdf, txt, docx, csv, xls"</small>
+                <input asp-for="Anexos" class="form-control" onchange="app.upload()" type="file" />
+                <span asp-validation-for="Anexos" class="text-danger"></span>
+            </div>
+            @Html.HiddenFor(p => p.Anexo.NomeCriado)
+            @Html.HiddenFor(p => p.Anexo.NomeOriginal)
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="VooCancelado.QtdPassageiros" class="control-label"></label>
+                <input asp-for="VooCancelado.QtdPassageiros" class="form-control" value="0" />
+                <span asp-validation-for="VooCancelado.QtdPassageiros" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label asp-for="Observacao" class="control-label"></label>
+                <textarea asp-for="Observacao" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Observacao" class="text-danger"></span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal confirm -->
+    <div class="modal" id="confirmModal" style="display: none; z-index: 1050;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" id="confirmMessage">
+                    <div class="row">
+                        <div class="col col-md-10 col-md-offset-1">
+                            <h4>Dados para o envio de email</h4>
+                            <div class="form-group">
+                                <label asp-for="EmailUsuario" class="control-label"></label>
+                                <input asp-for="EmailUsuario" class="form-control" />
+                                <span asp-validation-for="EmailUsuario" class="text-danger"></span>
+                                <div class="form-group">
+                                    <label asp-for="SenhaUsuario" class="control-label"></label>
+                                    <input asp-for="SenhaUsuario" class="form-control" />
+                                    <span asp-validation-for="SenhaUsuario" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="app.validarEmailUsuario()">Confirmar dados</button>
+                    <button type="button" class="btn btn-default" onclick="app.fecharModal()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Salvar Cancelamento" class="btn btn-success" id="salvar" />
+        <input type="button" value="Retornar" class="btn btn-default" onclick="location.href='@Url.Action("Index","Home")'" />
+
+    </div>
+}
+
+@section Scripts {
+
+    <script>
+      var app = window.app || {};
+
+app = (function() {
+  var me = {
+    init: _init,
+    selectTipo: _selectTipo,
+      selectAbonavel: _selectCancelado,
+      alterouVooEscala: _alterouVooEscala,
+      alterouVooEscalaAnterior: _alterouVooEscalaAnterior,
+    mudouIdTipo: _mudouIdTipo,
+    buscarVooCancelado: _buscarVooCancelado,
+      buscarVooAnterior: _buscarVooAnterior,
+      validarEmailUsuario: _validarEmailUsuario,
+    upload: _upload,
+      cancelar: _cancelar,
+      fecharModal: _fecharModal
+  };
+
+    function _init() {
+
+      _selectTipo('Aeroportos');
+      tinymce.init({
+          selector: 'textarea',
+          height: 300,
+          plugins: [
+              "advlist autolink lists link image charmap print preview anchor",
+              "searchreplace visualblocks code fullscreen",
+              "insertdatetime media table paste imagetools wordcount"
+          ],
+          toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image paste",
+          paste_data_images: true,
+          content_css: [
+              '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+              '//www.tiny.cloud/css/codepen.min.css'
+          ]
+      });
+  }
+
+      function _validarEmailUsuario()  {
+      var email = $('#EmailUsuario').val();
+          if (_validaEmail(email)) {
+              $('.emailInvalido').show();
+              var modal = $("#confirmModal");
+              modal.hide();
+              _setLoginLocalStorage();
+          }
+      else{
+          $('.emailInvalido').show();
+      }
+  }
+    function _alterouVooEscala() {
+        var t = $("#selectVooPortalEscala").val();
+
+        fetch('/Resources/voosMultiplos.json')
+            .then(res => res.json())
+            .then(data => {
+                _changeResultadoPortalEscala(data[t]);
+            })
+
+            .catch(err => {
+                console.log(err);
+            });
+    }
+
+    function _changeResultadoPortalEscala(res) {
+        $('#VooCancelado_Origem').val(res.Origem);
+        $('#VooCancelado_STD').val(res.STD);
+        $('#VooCancelado_STA').val(res.STA);
+        $('#VooCancelado_MetarOrigem').val(res.MetarOrigem);
+        $('#VooCancelado_Matricula').val(res.Matricula);
+        $('#VooCancelado_Destino').val(res.Destino);
+        $('#VooCancelado_MetarDestino').val(res.MetarDestino);
+        $('#VooCancelado_TipoVoo').val(res.TipoVoo);
+    }
+
+    function _alterouVooEscalaAnterior() {
+        var t = $("#selectVooPortalEscalaAnterior").val();
+
+        fetch('/Resources/voosMultiplosAnteriores.json')
+            .then(res => res.json())
+            .then(data => {
+                _changeResultadoPortalEscalaAnterior(data[t]);
+            })
+
+            .catch(err => {
+                console.log(err);
+            });
+    }
+
+    function _changeResultadoPortalEscalaAnterior(res) {
+        $('#VooAnterior_Origem').val(res.Origem);
+        $('#VooAnterior_STD').val(res.STD);
+        $('#VooAnterior_STA').val(res.STA);
+        $('#VooAnterior_MetarOrigem').val(res.MetarOrigem);
+        $('#VooAnterior_Matricula').val(res.Matricula);
+        $('#VooAnterior_Destino').val(res.Destino);
+        $('#VooAnterior_MetarDestino').val(res.MetarDestino);
+        $('#VooAnterior_TipoVoo').val(res.TipoVoo);
+    }
+
+
+  
+    function _fecharModal() {
+        var modal = $("#confirmModal");
+        modal.hide();
+        $('#EnviarEmail').prop('checked', false);
+    }
+
+  function _setLoginLocalStorage(){
+    var email = $('#EmailUsuario').val();
+    var senhaEmail = $('#SenhaUsuario').val();
+    localStorage.setItem("email", email);
+    localStorage.setItem("senha", senhaEmail);
+  }
+
+
+
+  function _verificaSenhaUsuario(){
+    var senha = $('#SenhaUsuario').val();
+    return (senha != '' && senha != undefined);
+  }
+
+
+
+  function _validaEmail(email) {
+    var regex = /^([\w-]+(?:\.[\w-]+)*)@@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+    return regex.test(email);
+  }
+
+
+
+  function _cancelar(){
+    var f = $("#Anexo_NomeCriado").val();
+
+
+      fetch(`/v1/anexos/${f.split('.')[0]}`, { method: "DELETE"})
+        .then(res => {
+          console.log(res.json());
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    }
+
+
+  function _upload() {
+    let photo = document.getElementById("Anexos").files[0];
+    let formData = new FormData();
+
+    if (photo != undefined) {
+      formData.append("photo", photo);
+
+        fetch('/v1/anexos', { method: "POST", body: formData })
+        .then(res => {
+          return res.json();
+        })
+        .then(data => _setFiles(data))
+          .catch(err => {
+        });
+    }
+
+    function _setFiles(res) {
+      $("#Anexo_NomeOriginal").val(res.nomeOriginal);
+      $("#Anexo_NomeCriado").val(res.nomeCriado);
+    }
+  }
+
+  function _selectTipo() {
+    var t = $("#opTipos").val();
+
+    // if (t.toLowerCase() == "meteorologia") {
+    //   _metereologia();
+    // } else {
+    //   $("#vooAnterior")
+    //     .empty()
+    //     .html();
+    // }
+
+    $.ajax({
+      type: "POST",
+      url: '@Url.Action("GetListTipos", "Home")',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({ FilterName: t }), // send as json,
+        success: data => {
+        $(".appendado").remove();
+        $("#tipos").append(data);
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+  }
+
+  function _mudouIdTipo() {
+    var novoId = $("#SeletctIdTipo").val();
+    $("#TipoCancelamento_Id").val(novoId);
+
+
+    var t = $("#opTipos").val();
+
+    var optTpo = $('#SeletctIdTipo').val();
+
+
+    if (t.toLowerCase() == "meteorologia" && optTpo == 23) {
+        _metereologia();
+    } else {
+        $("#vooAnterior")
+            .empty()
+            .html();
+    }
+
+    fetch(`/v1/tipos/getbyid/${novoId}`, { method: "GET" })
+        .then(res => {
+           return res.json();
+        })
+        .then(ret => {
+            $('#Abonavel').prop('checked', ret.abonavel);
+        })
+        .catch(err => {
+            console.log(err);
+        });
+
+
+}
+
+  function _selectCancelado() {
+    var id = $("#tipoCancelamento").val();
+
+    $.ajax({
+      type: "POST",
+      url: '@Url.Action("GetCancelamento", "Home")',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({ Id: id }), // send as json,
+      success: data => {
+        $("#abonavel").html("");
+        $("#abonavel").append(data);
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+  }
+
+  function _buscarVooCancelado() {
+    var n = $("#VooCancelado_NumeroDoVoo").val();
+    var d = $("#VooCancelado_DataVoo").val();
+
+
+      if (n !== null && n != "" && d !== null && d != "") {
+          toastr.warning('Buscando dados do voo: ' + n);
+          $('#salvar').hide();
+      var voo = {
+        NumeroDoVoo: n,
+        DataDoVoo: d
+      };
+
+
+
+      $.ajax({
+        type: "POST",
+        url: '@Url.Action("BuscarVooCancelado", "Voos")',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(voo),
+        success: data => {
+          $("#vooCancelado")
+            .empty()
+                .html(data);
+            toastr.success('Dados do voo: ' + n + ' retornados com sucesso!');
+            $('#salvar').show();
+        },
+        error: err => {
+          console.log(err);
+            toastr.error('Dados do voo: ' + n + ' não encontrados!');
+        }
+      });
+    }
+  }
+
+  function _metereologia() {
+    $.ajax({
+      type: "GET",
+      url: '@Url.Action("BuscarVooAnterior", "Voos")',
+      contentType: "application/json; charset=utf-8",
+      success: data => {
+        $("#vooAnterior")
+          .html("")
+          .html(data);
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+  }
+
+  function _buscarVooAnterior() {
+    var n = $("#VooAnterior_NumeroDoVoo").val();
+    var d = $("#VooAnterior_DataVoo").val();
+
+      if (n !== null && n != "" && d !== null && d != "") {
+          toastr.warning('Buscando dados do voo: ' + n);
+      var voo = {
+        NumeroDoVoo: n,
+        DataDoVoo: d
+          };
+
+      $.ajax({
+        type: "POST",
+        url: '@Url.Action("BuscarVooAnterior", "Voos")',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(voo),
+        success: data => {
+          $("#vooAnterior")
+            .empty()
+            .html(data);
+            toastr.success('Dados do voo: ' + n + ' retornados com sucesso!');
+        },
+        error: err => {
+            console.log(err);
+            toastr.error('Dados do voo: ' + n + ' não encontrados!');
+        }
+      });
+    }
+  }
+
+  return me;
+})();
+   function _verificarDadosLocalStorage(){
+    var email = localStorage.getItem("email");
+    var senhaEmail = localStorage.getItem("senha");
+
+    return((email != '' && email != undefined)&& (senhaEmail != '' && senhaEmail != undefined) );
+  }
+
+   function _getLoginLocalStorage(){
+
+    var email = localStorage.getItem("email");
+    var senhaEmail = localStorage.getItem("senha");
+
+    $('#EmailUsuario').val(email);
+    $('#SenhaUsuario').val(senhaEmail);
+  }
+
+
+        $('input[name="EnviarEmail"]').change(x => {
+            var v = x.target.checked;
+
+            var modal = $("#confirmModal");
+
+            var d = _verificarDadosLocalStorage();
+            console.log(d);
+
+            if (v && !d) {
+                modal.show();
+
+            } else {
+              _getLoginLocalStorage();
+                modal.hide();
+            }
+
+        });
+
+        app.init();
+
+
+    </script>
+
+
+}

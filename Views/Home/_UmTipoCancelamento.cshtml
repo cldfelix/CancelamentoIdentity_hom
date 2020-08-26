@@ -1,0 +1,22 @@
+﻿@model CancelamentoIdentity.Models.TiposCancelamentos
+
+<div class="col-md-4">
+
+    <select asp-for="TipoSistemaCancelamento" asp-items="Html.GetEnumSelectList<DayOfWeek>()">
+        <option value="">Choose a day</option>
+    </select>
+
+    <div class="form-group">
+        <label class="control-label"></label>
+        <select class="form-control" id="tipoCancelamento" onchange="app.selectAbonavel()" required>
+            <option value="@Model.Id">@Model.CodAdm - @Model.Descricao </option>
+        </select>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="form-group">
+        <label asp-for="@Model.Abonavel" class="control-label"></label>
+        <input asp-for="@Model.Abonavel" class="form-control" required disabled />
+        <span asp-validation-for="@Model.Abonavel" class="text-danger"></span>
+    </div>
+</div>

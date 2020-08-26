@@ -1,0 +1,25 @@
+﻿@model List<CancelamentoIdentity.Models.Cancelamento>
+@if (Model.Count > 1)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="control-label">Multiplos retornos com o mesmo número do voo foram encontrados, selecione um abaixo</label>
+                <select class="form-control" id="selectVooPortalEscala" onchange="app.alterouVooEscala()">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        <option value="@i">@Model[i].VooCancelado.NumeroDoVoo @Model[i].VooCancelado.DataVoo @Model[i].VooCancelado.Origem @Model[i].VooCancelado.Destino @Model[i].VooCancelado.Matricula</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_VooCancelado", Model.First())
+}
+else
+{
+    @Html.Partial("_VooCancelado", Model.First())
+}
+
+

@@ -1,0 +1,550 @@
+﻿@using CancelamentoIdentity.Models;
+@model CancelamentoIdentity.Models.Cancelamento
+
+
+@{
+    var user = ViewBag.User;
+    var isConcilie = user == "concilie@voegol.com.br";
+    var isCcco = user == "cco@voegol.com.br";
+    var isManutencao = user == "manutencao@voegol.com.br";
+
+
+}
+@using (Html.BeginForm("Editar", "Home", FormMethod.Post, new { id = Model.Id }))
+{
+    <div class="row">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label asp-for="VooCancelado.NumeroDoVoo" class="control-label"></label>
+                <input asp-for="VooCancelado.NumeroDoVoo" class="form-control" onchange="app.buscarVooCancelado()" disabled />
+                <span asp-validation-for="VooCancelado.NumeroDoVoo" class="text-danger"></span>
+            </div>
+            @Html.HiddenFor(p => p.VooCancelado.NumeroDoVoo)
+
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label asp-for="VooCancelado.DataVoo" class="control-label"></label>
+                <input asp-for="VooCancelado.DataVoo" class="form-control" onchange="app.buscarVooCancelado()" disabled />
+                <span asp-validation-for="VooCancelado.DataVoo" class="text-danger"></span>
+            </div>
+            @Html.HiddenFor(p => p.VooCancelado.DataVoo)
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+
+                <div class="checkbox">
+                    <label>
+                        @if (isCcco)
+                        {
+                            <input asp-for="Cancelado" /> @Html.DisplayNameFor(model => model.Cancelado)
+                        }
+                        else
+                        {
+                            <input asp-for="Cancelado" disabled /> @Html.DisplayNameFor(model => model.Cancelado)
+
+                        }
+                    </label>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <div class="checkbox">
+                    <label>
+                        @if (isCcco | isConcilie)
+                        {
+                            <input asp-for="AlvoDeProcesso" /> @Html.DisplayNameFor(model => model.AlvoDeProcesso)
+                        }
+                        else
+                        {
+                            <input asp-for="AlvoDeProcesso" disabled /> @Html.DisplayNameFor(model => model.AlvoDeProcesso)
+
+                        }
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" id="tipos">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label"> Tipo do Cancelamento</label>
+                @if (isCcco)
+                {
+
+                    <select class="form-control" id="opTipos" value="@Model.TipoCancelamento.Tipo" onchange="app.selectTipo()" required>
+                        @foreach (var item in ViewBag.Tipos)
+                        {
+                            if (Model.TipoCancelamento.Tipo != item)
+                            {
+                                <option value="@item">@item</option>
+
+                            }
+                            else
+                            {
+                                <option value="@item" selected>@item</option>
+                            }
+
+                        }
+                    </select>
+                }
+                else
+                {
+                    <select class="form-control" disabled id="opTipos" value="@Model.TipoCancelamento.Tipo" onchange="app.selectTipo()" required>
+                        @foreach (var item in ViewBag.Tipos)
+                        {
+                            if (Model.TipoCancelamento.Tipo != item)
+                            {
+                                <option value="@item">@item</option>
+
+                            }
+                            else
+                            {
+                                <option value="@item" selected>@item</option>
+                            }
+
+                        }
+                    </select>
+                }
+
+                <span asp-validation-for="TipoCancelamento.CodAdm" class="text-danger"></span>
+            </div>
+        </div>
+
+        @if (Model.TipoCancelamento != null)
+        {
+            List<TiposCancelamentos> tp = ViewBag.TiposSelecionados;
+            @if (isCcco)
+            {
+                @Html.Partial("_TiposCancelamentos", tp)
+
+            }
+            else
+            {
+                @Html.Partial("_TiposCancelamentosDisabled", tp)
+
+            }
+        }
+    </div>
+
+    <div id="vooCancelado"></div>
+
+    @Html.Partial("~/Views/Voos/_VooCancelado.cshtml", Model)
+
+    @if (Model.VooAnterior != null)
+    {
+        @Html.Partial("~/Views/Voos/_VooAnterior.cshtml", Model)
+
+    }
+
+    <div id="vooAnterior"></div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                @if (Model.Anexos?.Count() > 0)
+                {
+                    <label class="control-label">Anexos do Cancelamento</label>
+                    <small>Tipos permitidos: "doc, pdf, txt, docx, csv, xls"</small>
+                    <div id="todosAnexos">
+                        @foreach (var a in @Model.Anexos)
+                        {
+                            <div id="img_@a.Id">
+                                <button class="btn btn-default" onclick="@("location.href='"+ Url.Action
+                                ("GetAnexo","Anexos",new { id = a.Id }) + "'")">
+                                    @a.NomeOriginal
+                                </button>
+                                <label onclick="@("location.href='"+ Url.Action
+                                ("GetAnexo","Anexos",new { id = a.Id }) + "'")">
+                                    Download
+                                    <span class="glyphicon glyphicon-download"></span>
+                                </label>
+                                <label onclick="app.deletAnexo(@a.Id)" )">
+                                    Delete
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                </label>
+                            </div>
+                        }
+                    </div>
+                }
+                <input id="imgToDelete" type="hidden" value="">
+                <p></p>
+                <label class="control-label">Adicionar documento</label>
+                <input asp-for="Anexos" class="form-control" onchange="app.upload()" type="file" />
+                <span asp-validation-for="Anexos" class="text-danger"></span>
+            </div>
+            <input type="text" name="name" value="" id="NovoAnexo" hidden />
+            @Html.HiddenFor(p => p.Anexo.NomeCriado)
+            @Html.HiddenFor(p => p.Anexo.NomeOriginal)
+        </div>
+
+        <div class="col-md-4">
+            <div class="form-group">
+                <label asp-for="VooCancelado.QtdPassageiros" class="control-label"></label>
+                @if (isCcco)
+                {
+                    <input asp-for="VooCancelado.QtdPassageiros" class="form-control" />
+                }
+                else
+                {
+
+                    <input asp-for="VooCancelado.QtdPassageiros" disabled class="form-control" />
+                }
+                <span asp-validation-for="VooCancelado.QtdPassageiros" class="text-danger"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label asp-for="Observacao" class="control-label"></label>
+                <textarea asp-for="Observacao" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Observacao" class="text-danger"></span>
+            </div>
+        </div>
+        <input id="Observacao_Anterior" type="hidden" value="@Model.Observacao">
+    </div>
+
+    <!-- Modal confirm -->
+    <div class="modal" id="confirmModal" style="display: none; z-index: 1050;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body" id="confirmMessage">
+                    <h4>
+                        Confirma exclusão do arquivo?
+                    </h4>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" id="confirmOk" onclick="app.confirmDelete()">Sim</button>
+                    <button type="button" class="btn btn-default" id="confirmCancel" onclick="app.cancelDelete()">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <input type="submit" value="Salvar Alterações" class="btn btn-warning" id="atualizar" />
+        <input type="button" value="Retornar" class="btn btn-default" onclick="app.cancelUpdate()" />
+    </div>
+}
+
+
+@section Scripts {
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+           @if (!isCcco)
+    {
+        @:executeJsfunction();
+    }
+
+        function executeJsfunction() {
+        
+            tinymce.get('Observacao').mode.set('readonly');
+        }
+        });
+
+
+    </script>
+
+    <script>
+        var app = window.app || {};
+
+app = (function() {
+  var me = {
+    init: _init,
+    selectTipo: _selectTipo,
+      selectAbonavel: _selectCancelado,
+      mudouIdTipo: _mudouIdTipo,
+    buscarVooCancelado: _buscarVooCancelado,
+    buscarVooAnterior: _buscarVooAnterior,
+      upload: _upload,
+      confirmDelete: _confirmDelete,
+      cancelDelete: _cancelDelete,
+    cancelUpdate: _cancelUpdate,
+      getToken: _getToken,
+    deletAnexo: _deleteAnexo
+    };
+
+
+    function _deleteAnexo(id) {
+        var modal = $("#confirmModal");
+        modal.show();
+        $('#imgToDelete').val(id);
+    }
+    function _confirmDelete() {
+        var id = $('#imgToDelete').val();
+
+        $.ajax({
+            url: `/cancelamentos_hom/v1/anexos/${id}`,
+            type: 'DELETE',
+            success: function (response) {
+                console.log(response);
+                $('#img_' + id).hide();
+            }
+        });
+
+        var modal = $("#confirmModal");
+        modal.hide();
+    }
+
+    function _cancelUpdate() {
+        _confirmDelete();
+        //location.href='@Url.Action("Index","Home")'
+
+    }
+    function _cancelDelete() {
+        var modal = $("#confirmModal");
+        modal.hide();
+    }
+
+    /*
+    $.ajax({
+        url: `/v1/anexos/${id}`,
+        type: 'DELETE',
+        success: function (response) {
+            console.log(response);
+            $('#img_' + id).empty();
+            $(this).close();
+        }
+    });
+    */
+  function _init() {
+      console.log("init");
+      tinymce.init({
+          selector: "textarea",
+          height: 300,
+          plugins: [
+              "advlist autolink lists link image charmap print preview anchor",
+              "searchreplace visualblocks code fullscreen",
+              "insertdatetime media table paste imagetools wordcount"
+          ],
+          toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image paste",
+          content_css: [
+              '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+              '//www.tiny.cloud/css/codepen.min.css'
+          ],
+          paste_data_images: true,
+          setup: function (editor) {
+              editor.on('focus', function (e) {
+                  tinymce.get('Observacao').setContent('');
+              });
+
+              editor.on('focusout', function (e) {
+                  var atual = tinyMCE.activeEditor.getContent();
+                  var anterior = $('#Observacao_Anterior').val();
+                  tinymce.get('Observacao').setContent(anterior + ' ' + atual);
+              });
+          }
+      });
+
+
+
+       //$('#opTipos').val('@Model.TipoCancelamento.Tipo').change();
+    }
+
+    function _upload() {
+        let photo = document.getElementById("Anexos").files[0];
+        let formData = new FormData();
+
+        if (photo != undefined) {
+            formData.append("photo", photo);
+            formData.append("idCancelamento", @Model.Id);
+            console.log(formData);
+            $('#atualizar').attr('disabled', true);
+
+            fetch("/cancelamentos_hom/v1/anexos", { method: "POST", body: formData })
+                .then(res => {
+                    $('#atualizar').attr('disabled', false);
+                    return res.json();
+                })
+                .then(data => _setFiles(data))
+                .catch(err => {
+                    console.log(err);
+                });
+        }
+
+        function _setFiles(res) {
+            console.log(res);
+
+            var n = ` <div id="img_${res.id}">
+                <button class="btn btn-default" onclick="location.href='/cancelamentos_hom/v1/anexos/${res.id}'">
+                    ${res.nomeOriginal}
+                            </button>
+                <label onclick="location.href='/cancelamentos_hom/v1/anexos/${res.id}'">
+                    Download
+                                <span class="glyphicon glyphicon-download"></span>
+                </label>
+                <label onclick="app.deletAnexo(${res.id})" )"="">
+                    Delete
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </label>
+                        </div >`;
+
+            console.log(n);
+            $('#imgToDelete').val(res.id);
+            $('#todosAnexos').append(n);
+
+        }
+    }
+
+  function  _getToken(){
+    var u = {
+      id: 1,
+      token: 'token'
+    }
+
+    localStorage.setItem('user', JSON.stringify(u));
+    var user = JSON.parse(localStorage.getItem('user'));
+    console.log(user);
+  }
+
+
+  function _selectTipo() {
+      var t = $("#opTipos").val();
+
+
+    if (t == "Meteorologia") {
+      _metereologia();
+    } else {
+        $("#vooAnterior")
+            .empty()
+            .html();
+    }
+
+    $.ajax({
+      type: "POST",
+      url: '@Url.Action("GetListTipos", "Home")',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({ FilterName: t }), // send as json,
+      success: data => {
+        $(".appendado").remove();
+
+        $("#tipos").append(data);
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+  }
+
+
+  function _selectCancelado() {
+    var id = $("#tipoCancelamento").val();
+
+    $.ajax({
+      type: "POST",
+      url: '@Url.Action("GetCancelamento", "Home")',
+      contentType: "application/json; charset=utf-8",
+      data: JSON.stringify({ Id: id }), // send as json,
+      success: data => {
+        console.log(data.responseText);
+        $("#abonavel").html("");
+        $("#abonavel").append(data);
+      },
+      error: err => {
+        console.log(err);
+      }
+    });
+  }
+
+  function _buscarVooCancelado() {
+    var n = $("#VooCancelado_NumeroDoVoo").val();
+    var d = $("#VooCancelado_DataVoo").val();
+
+    if (n !== null && n != "" && d !== null && d != "") {
+        toastr.info('Buscando dados do voo: ' + n);
+        $('#atualizar').hide();
+      var voo = {
+        NumeroDoVoo: n,
+        DataDoVoo: d
+      };
+
+      $.ajax({
+        type: "POST",
+        url: '@Url.Action("BuscarVooCancelado", "Voos")',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(voo),
+        success: data => {
+          $(".vooCancelado")
+              .remove()
+            $('#vooCancelado').html(data);
+            toastr.success('Dados do voo: ' + n + ' retornados com sucesso!')
+            $('#atualizar').show();
+        },
+          error: err => {
+              toastr.error('Dados do voo: ' + n + ' não encontrados!');
+              $(".vooCancelado")
+                  .html('');
+              $('#vooCancelado').html('');
+
+          console.log(err);
+        }
+      });
+    }
+  }
+
+    function _mudouIdTipo() {
+        var novoId = $('#SeletctIdTipo').val();
+        $('#TipoCancelamento_Id').val(novoId);
+    }
+
+  function _metereologia() {
+    $.ajax({
+      type: "GET",
+      url: '@Url.Action("BuscarVooAnterior", "Voos")',
+      contentType: "application/json; charset=utf-8",
+      success: data => {
+        $("#vooAnterior")
+          .html("")
+          .html(data);
+      },
+        error: err => {
+        console.log(err);
+      }
+    });
+  }
+
+  function _buscarVooAnterior() {
+    var n = $("#VooAnterior_NumeroDoVoo").val();
+    var d = $("#VooAnterior_DataVoo").val();
+
+    if (n !== null && n != "" && d !== null && d != "") {
+        toastr.warning('Buscando dados do voo: ' + n);
+        $('#atualizar').hide();
+      var voo = {
+        NumeroDoVoo: n,
+        DataDoVoo: d
+      };
+      $.ajax({
+        type: "POST",
+        url: '@Url.Action("BuscarVooAnterior", "Voos")',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(voo),
+        success: data => {
+          $("#vooAnterior")
+            .html('')
+                .html(data);
+            $('#atualizar').show();
+        },
+        error: err => {
+          console.log(err);
+            toastr.error('Dados do voo: ' + n + ' não encontrados!');
+        }
+      });
+    }
+  }
+
+
+
+  return me;
+        })();
+        app.init();
+    </script>
+
+
+}

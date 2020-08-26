@@ -1,0 +1,30 @@
+﻿@model List<CancelamentoIdentity.Models.TiposCancelamentos>
+
+
+@{ var b = Model.First(); }
+
+<div class="col-md-4 appendado">
+
+    <div class="form-group">
+        <label class="control-label">Cod. e Descrição</label>
+        <select class="form-control" id="SeletctIdTipo" disabled>
+            @foreach (var item in Model)
+            {
+
+                <option value="@item.Id">@item.CodAdm - @item.Descricao </option>
+            }
+        </select>
+    </div>
+
+    <input id="TipoCancelamento_Id" name="TipoCancelamento.Id" type="hidden" value="@Model[0].Id">
+    <input id="TipoCancelamento_Tipo" name="TipoCancelamento.Tipo" type="hidden" value="@Model[0].Tipo">
+    <input id="TipoCancelamento_CodAdm" name="TipoCancelamento.CodAdm" type="hidden" value="@Model[0].CodAdm">
+    <input id="TipoCancelamento_Descricao" name="TipoCancelamento.Descricao" type="hidden" value="@Model[0].Descricao">
+    <input id="TipoCancelamento_TipoSistemaCancelamento" name="TipoCancelamento.TipoSistemaCancelamento" type="hidden" value="@Model[0].TipoSistemaCancelamento">
+
+</div>
+<div class="col-md-4 appendado">
+    @Html.Partial("_Abonado", Model.First())
+</div>
+
+
